@@ -1,7 +1,8 @@
 package es.test.inditex.application.service.impl;
 
+import es.test.inditex.adapter.rest.dto.PriceResponse;
 import es.test.inditex.application.service.PriceService;
-import es.test.inditex.domain.entity.Price;
+
 import es.test.inditex.domain.exception.PriceNotFoundException;
 import es.test.inditex.domain.repository.PriceRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,19 @@ public class PriceServiceImpl implements PriceService {
     private final PriceRepository priceRepository;
 
     @Override
-    public Price getPrice(LocalDateTime date, Long productId, Long brandId) {
+    public PriceResponse getPrice(LocalDateTime date, Long productId, Long brandId) {
         log.info("Buscando precio para productId: {}, brandId: {} en fecha: {}", productId, brandId, date);
-        return priceRepository.findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
+        var price = priceRepository.findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
                         productId, brandId, date, date)
                 .orElseThrow(() -> new PriceNotFoundException("No se encontró precio para los parámetros indicados."));
+
+        return new PriceResponse(
+                price.getProductId(),
+                price.getBrandId(),
+                price.getPriceList(),
+                price.getStartDate(),
+                price.getEndDate(),
+                price.getPrice()
+        );
     }
 }

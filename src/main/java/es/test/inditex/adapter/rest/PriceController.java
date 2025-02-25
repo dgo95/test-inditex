@@ -1,7 +1,7 @@
 package es.test.inditex.adapter.rest;
 
+import es.test.inditex.adapter.rest.dto.PriceResponse;
 import es.test.inditex.application.service.PriceService;
-import es.test.inditex.domain.entity.Price;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +19,7 @@ public class PriceController {
     private final PriceService priceService;
 
     @GetMapping
-    public ResponseEntity<Price> getPrice(
+    public ResponseEntity<PriceResponse> getPrice(
             @RequestParam("date")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date,
             @RequestParam("productId") Long productId,
@@ -27,7 +27,7 @@ public class PriceController {
 
         log.info("Recibiendo petición en el endpoint con date: {}, productId: {}, brandId: {}",
                 date, productId, brandId);
-        Price price = priceService.getPrice(date, productId, brandId);
+        var price = priceService.getPrice(date, productId, brandId);
         return ResponseEntity.ok(price);
     }
 }
