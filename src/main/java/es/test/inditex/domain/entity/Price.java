@@ -1,4 +1,4 @@
-package es.test.inditex.entity;
+package es.test.inditex.domain.entity;
 
 
 import lombok.AllArgsConstructor;

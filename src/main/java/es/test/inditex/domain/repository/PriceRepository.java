@@ -1,7 +1,7 @@
-package es.test.inditex.repository;
+package es.test.inditex.domain.repository;
 
 
-import es.test.inditex.entity.Price;
+import es.test.inditex.domain.entity.Price;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
