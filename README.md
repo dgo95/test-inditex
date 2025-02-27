@@ -224,7 +224,7 @@ public boolean hasHigherPriority(Price other) {
 - Maven 3.8+
 
 ### Ejecución Local
-1. Clonar el repositorio: `git clone <URL>`.
+1. Clonar el repositorio: `git clone https://github.com/dgo95/test-inditex.git`.
 2. Navegar al directorio: `cd test-inditex`.
 3. Compilar y ejecutar: `mvn spring-boot:run`.
 4. Acceder al endpoint: `GET http://localhost:8080/api/prices?date=2020-06-14T10:00:00&productId=35455&brandId=1`.
