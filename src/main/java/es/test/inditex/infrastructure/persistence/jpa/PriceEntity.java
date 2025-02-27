@@ -1,11 +1,10 @@
-package es.test.inditex.domain.entity;
+package es.test.inditex.infrastructure.persistence.jpa;
 
-
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -14,8 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "prices")
-public class Price {
-
+public class PriceEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

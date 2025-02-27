@@ -1,8 +1,7 @@
 package es.test.inditex.adapter.rest;
 
-import es.test.inditex.domain.repository.PriceRepository;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,144 +19,87 @@ public class PriceControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
-    private PriceRepository priceRepository;
-
-    /**
-     * Test 1: Petición a las 10:00 del día 14 para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que se aplique la tarifa con priceList = 1.
-     */
-    @Test
-    void testGetPrice_Test1() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            "2020-06-14T10:00:00, 35455, 1, 1, 35.50, 2020-06-14T00:00:00, 2020-12-31T23:59:59", // Test 1
+            "2020-06-14T16:00:00, 35455, 1, 2, 25.45, 2020-06-14T15:00:00, 2020-06-14T18:30:00", // Test 2
+            "2020-06-14T21:00:00, 35455, 1, 1, 35.50, 2020-06-14T00:00:00, 2020-12-31T23:59:59", // Test 3
+            "2020-06-15T10:00:00, 35455, 1, 3, 30.50, 2020-06-15T00:00:00, 2020-06-15T11:00:00", // Test 4
+            "2020-06-16T21:00:00, 35455, 1, 4, 38.95, 2020-06-15T16:00:00, 2020-12-31T23:59:59"  // Test 5
+    })
+    void testGetPrice_Success(String date, String productId, String brandId, int priceList, double price,
+                              String startDate, String endDate) throws Exception {
         mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-14T10:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
+                        .param("date", date)
+                        .param("productId", productId)
+                        .param("brandId", brandId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(35455))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.priceList").value(1))
-                .andExpect(jsonPath("$.price").value(35.50))
-                .andExpect(jsonPath("$.startDate").value("2020-06-14T00:00:00"))
-                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"));
+                .andExpect(jsonPath("$.productId").value(productId))
+                .andExpect(jsonPath("$.brandId").value(brandId))
+                .andExpect(jsonPath("$.priceList").value(priceList))
+                .andExpect(jsonPath("$.price").value(price))
+                .andExpect(jsonPath("$.startDate").value(startDate))
+                .andExpect(jsonPath("$.endDate").value(endDate));
     }
 
-    /**
-     * Test 2: Petición a las 16:00 del día 14 para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que se aplique la tarifa con priceList = 2, ya que está en un rango de mayor prioridad.
-     */
-    @Test
-    void testGetPrice_Test2() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            "2020-06-14T10:00:00, 35455, '', Missing required parameter: brandId",
+            "2020-06-14T10:00:00, '', 1, Missing required parameter: productId",
+            "'', 35455, 1, Missing required parameter: date"
+    })
+    void testGetPrice_MissingParam(String date, String productId, String brandId, String expectedMessage)
+            throws Exception {
         mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-14T16:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(35455))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.priceList").value(2))
-                .andExpect(jsonPath("$.price").value(25.45))
-                .andExpect(jsonPath("$.startDate").value("2020-06-14T15:00:00"))
-                .andExpect(jsonPath("$.endDate").value("2020-06-14T18:30:00"));
-    }
-
-    /**
-     * Test 3: Petición a las 21:00 del día 14 para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que se aplique la tarifa con priceList = 1, ya que la tarifa 2 ya ha finalizado.
-     */
-    @Test
-    void testGetPrice_Test3() throws Exception {
-        mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-14T21:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(35455))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.priceList").value(1))
-                .andExpect(jsonPath("$.price").value(35.50))
-                .andExpect(jsonPath("$.startDate").value("2020-06-14T00:00:00"))
-                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"));
-    }
-
-    /**
-     * Test 4: Petición a las 10:00 del día 15 para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que se aplique la tarifa con priceList = 3.
-     */
-    @Test
-    void testGetPrice_Test4() throws Exception {
-        mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-15T10:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(35455))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.priceList").value(3))
-                .andExpect(jsonPath("$.price").value(30.50))
-                .andExpect(jsonPath("$.startDate").value("2020-06-15T00:00:00"))
-                .andExpect(jsonPath("$.endDate").value("2020-06-15T11:00:00"));
-    }
-
-    /**
-     * Test 5: Petición a las 21:00 del día 16 para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que se aplique la tarifa con priceList = 4.
-     */
-    @Test
-    void testGetPrice_Test5() throws Exception {
-        mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-16T21:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(35455))
-                .andExpect(jsonPath("$.brandId").value(1))
-                .andExpect(jsonPath("$.priceList").value(4))
-                .andExpect(jsonPath("$.price").value(38.95))
-                .andExpect(jsonPath("$.startDate").value("2020-06-15T16:00:00"))
-                .andExpect(jsonPath("$.endDate").value("2020-12-31T23:59:59"));
-    }
-
-    /**
-     * Test 6: Petición a las 10:00 del día 14 para el producto 35455 y sin brand
-     * Se espera que falle por faltar un parámetro.
-     */
-    @Test
-    void testGetPrice_MissingParam() throws Exception {
-        mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-14T10:00:00")
-                        .param("productId", "35455"))
+                        .param("date", date == null || date.isEmpty() ? "" : date)
+                        .param("productId", productId == null || productId.isEmpty() ? "" : productId)
+                        .param("brandId", brandId == null || brandId.isEmpty() ? "" : brandId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Parámetro obligatorio faltante: brandId"));
+                .andExpect(content().string(expectedMessage));
     }
 
-    /**
-     * Test 7: Petición con fecha inválida para el producto 35455 de la brand 1 (ZARA)
-     * Se espera que falle por no tener una fecha válida.
-     */
-    @Test
-    void testGetPrice_InvalidDate() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            "invalid-date, 35455, 1, Invalid parameter: date must be of type LocalDateTime. Provided value: invalid-date",
+            "2020-06-14T10:00:00, abc, 1, Invalid parameter: productId must be of type Long. Provided value: abc",
+            "2020-06-14T10:00:00, 35455, xyz, Invalid parameter: brandId must be of type Long. Provided value: xyz"
+    })
+    void testGetPrice_InvalidParam(String date, String productId, String brandId, String expectedMessage)
+            throws Exception {
         mockMvc.perform(get("/api/prices")
-                        .param("date", "invalid-date")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
+                        .param("date", date)
+                        .param("productId", productId)
+                        .param("brandId", brandId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Parámetro inválido: date debe ser de tipo LocalDateTime"));
+                .andExpect(content().string(expectedMessage));
     }
 
-    /**
-     * Test 8: Petición que no encuentra un precio.
-     * Se espera que se retorne 404 con el mensaje de error del PriceNotFoundException.
-     */
-    @Test
-    void testGetPrice_NotFound() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            "2020-06-14T10:00:00, 0, 1, Validation error: productId must be greater than or equal to 1",
+            "2020-06-14T10:00:00, 35455, 0, Validation error: brandId must be greater than or equal to 1"
+    })
+    void testGetPrice_ConstraintViolation(String date, String productId, String brandId, String expectedMessage)
+            throws Exception {
         mockMvc.perform(get("/api/prices")
-                        .param("date", "2020-06-13T10:00:00")
-                        .param("productId", "35455")
-                        .param("brandId", "1"))
+                        .param("date", date)
+                        .param("productId", productId)
+                        .param("brandId", brandId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(expectedMessage));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "2020-06-13T10:00:00, 35455, 1, No price found for the given parameters."
+    })
+    void testGetPrice_NotFound(String date, String productId, String brandId, String expectedMessage)
+            throws Exception {
+        mockMvc.perform(get("/api/prices")
+                        .param("date", date)
+                        .param("productId", productId)
+                        .param("brandId", brandId))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("No se encontró precio para los parámetros indicados."));
-
+                .andExpect(content().string(expectedMessage));
     }
-
 }
