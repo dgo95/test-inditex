@@ -43,9 +43,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Compilar la aplicación (sin tests)
-        run: mvn clean package -DskipTests --file pom.xml
-
       - name: Construir imagen Docker
         run: docker build -t inditex-app .
 
