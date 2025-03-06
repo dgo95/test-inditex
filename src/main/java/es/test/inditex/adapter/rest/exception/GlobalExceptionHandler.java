@@ -19,42 +19,65 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(PriceNotFoundException.class)
-    public ResponseEntity<String> handlePriceNotFound(PriceNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handlePriceNotFound(PriceNotFoundException ex) {
         log.error("PriceNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                "PRICE_NOT_FOUND",
+                ex.getMessage(),
+                "Please check the values for date, productId, and brandId."
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
+    public ResponseEntity<ErrorResponse> handleMissingParams(MissingServletRequestParameterException ex) {
         String message = "Missing required parameter: " + ex.getParameterName();
         log.error("MissingServletRequestParameterException: {}", message);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        ErrorResponse error = new ErrorResponse(
+                "MISSING_PARAMETER",
+                message,
+                "Ensure all required parameters are provided."
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String message = "Invalid parameter: " + ex.getName() + " must be of type " +
                 Objects.requireNonNull(ex.getRequiredType()).getSimpleName() +
                 ". Provided value: " + ex.getValue();
         log.error("MethodArgumentTypeMismatchException: {}", message);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        ErrorResponse error = new ErrorResponse(
+                "INVALID_PARAMETER_TYPE",
+                message,
+                "Please verify the parameter types."
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<String> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
-        String errorMessage = "Validation error: ";
-        Object[] detailArgs = ex.getDetailMessageArguments();
-        errorMessage += Arrays.stream(detailArgs)
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        String errorMessage = "Validation error: " +
+                Arrays.stream(ex.getDetailMessageArguments())
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
         log.error("HandlerMethodValidationException: {}", errorMessage);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        ErrorResponse error = new ErrorResponse(
+                "VALIDATION_ERROR",
+                errorMessage,
+                "Ensure that all validation constraints are met."
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        String message = "Internal server error.";
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         log.error("Unhandled exception: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+        ErrorResponse error = new ErrorResponse(
+                "INTERNAL_SERVER_ERROR",
+                "Internal server error.",
+                "An unexpected error occurred. Please contact support."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

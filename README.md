@@ -188,18 +188,16 @@ public boolean hasHigherPriority(Price other) {
   - En este proyecto, dado que los datos son estáticos y el enfoque es una prueba técnica, no se implementaron estas estrategias. Sin embargo, en producción serían esenciales para garantizar datos actualizados.
 
 ### Gestión de Excepciones
-- **`GlobalExceptionHandler`** captura excepciones específicas:
-  - `PriceNotFoundException`: Devuelve `404 Not Found`.
-  - Errores de validación (`ConstraintViolationException`, `MissingServletRequestParameterException`): Devuelve `400 Bad Request`.
-  - Excepciones genéricas: Devuelve `500 Internal Server Error`.
-- Se utilizan códigos HTTP específicos para proporcionar respuestas claras al cliente.
-- **Elección de Códigos HTTP**:
-  - **`404 Not Found`**: Se usa para `PriceNotFoundException`, indicando que no existe un precio para los parámetros dados. Es el estándar REST para recursos inexistentes.
-  - **`400 Bad Request`**: Aplicado a errores de validación (como parámetros faltantes o inválidos), reflejando que la solicitud del cliente está malformada y no puede procesarse.
-  - **`500 Internal Server Error`**: Reservado para excepciones no controladas, señalando un fallo inesperado en el servidor que el cliente no puede resolver.
-
-- **Personalización en un Escenario Real**:
-  - En producción, los códigos HTTP por sí solos podrían no ser suficientes para consumidores de la API que necesiten información detallada. Se podría estandarizar las respuestas de error incluyendo un cuerpo JSON con campos como `errorCode` (un identificador único del error), `message` (descripción legible) y `details` (información adicional para depuración). Ejemplo:
+- **`GlobalExceptionHandler`** captura excepciones específicas y devuelve códigos HTTP en función del tipo de error que lo haya causado:
+  - `404 Not Found`: Se usa para `PriceNotFoundException`, indicando que no existe un precio para los parámetros proporcionados.
+  - `400 Bad Request`: Se aplica a errores de validación (por ejemplo, parámetros faltantes o con tipos incorrectos).
+  - `500 Internal Server Error`: Se utiliza para excepciones no controladas.
+- **Formato de Respuesta de Error**:
+  - Para mejorar la experiencia del consumidor final, la API devuelve ahora las respuestas de error en un formato JSON estandarizado. Cada respuesta de error incluye:
+    - **`errorCode`**: Un identificador único del error (por ejemplo, `"PRICE_NOT_FOUND"`).
+    - `message`: Un mensaje descriptivo del error (por ejemplo, `"Price not found for the provided parameters."`).
+    - `details`: Información adicional que puede ayudar a depurar la solicitud (por ejemplo, `"Check the values for date, productId, and brandId.")`.
+- Ejemplo de respuesta de error:
     ```json
     {
       "errorCode": "PRICE_NOT_FOUND",
@@ -207,7 +205,7 @@ public boolean hasHigherPriority(Price other) {
       "details": "Verifique los valores de date, productId y brandId."
     }
     ```
-  - Esta estructura mejora la experiencia del cliente al permitir un manejo granular de errores y facilita la depuración. Además, los códigos HTTP podrían ajustarse según estándares internos de la empresa (por ejemplo, usar `422 Unprocessable Entity` para validaciones específicas), siempre que se documente claramente en la API.
+  - Esta estructura mejora la experiencia del cliente al permitir un manejo granular de errores y facilita la depuración. Además, los códigos HTTP podrían ajustarse según estándares internos (por ejemplo, usar `422 Unprocessable Entity` para validaciones específicas), siempre que se documente claramente en la API.
 
 ---
 ## Base de Datos

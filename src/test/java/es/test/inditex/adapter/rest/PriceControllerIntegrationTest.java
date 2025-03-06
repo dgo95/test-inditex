@@ -55,7 +55,9 @@ public class PriceControllerIntegrationTest {
                         .param("productId", productId == null || productId.isEmpty() ? "" : productId)
                         .param("brandId", brandId == null || brandId.isEmpty() ? "" : brandId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(expectedMessage));
+                .andExpect(jsonPath("$.errorCode").value("MISSING_PARAMETER"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.details").value("Ensure all required parameters are provided."));
     }
 
     @ParameterizedTest
@@ -71,7 +73,9 @@ public class PriceControllerIntegrationTest {
                         .param("productId", productId)
                         .param("brandId", brandId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(expectedMessage));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_PARAMETER_TYPE"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.details").value("Please verify the parameter types."));
     }
 
     @ParameterizedTest
@@ -86,7 +90,9 @@ public class PriceControllerIntegrationTest {
                         .param("productId", productId)
                         .param("brandId", brandId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(expectedMessage));
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.details").value("Ensure that all validation constraints are met."));
     }
 
     @ParameterizedTest
@@ -100,6 +106,8 @@ public class PriceControllerIntegrationTest {
                         .param("productId", productId)
                         .param("brandId", brandId))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(expectedMessage));
+                .andExpect(jsonPath("$.errorCode").value("PRICE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.details").value("Please check the values for date, productId, and brandId."));
     }
 }

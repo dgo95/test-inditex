@@ -29,8 +29,8 @@ public class GlobalExceptionHandlerIntegrationTest {
         public static class DummyController {
             @GetMapping("/api/test/generic-error")
             public String throwGenericException() {
-                // Se lanza una excepción genérica para testear el GlobalExceptionHandler.
-                throw new RuntimeException("Excepción forzada para testear el handler genérico");
+                // Forced exception to test the generic handler
+                throw new RuntimeException("Forced exception to test the generic handler");
             }
 
             @GetMapping("/api/test/constraint")
@@ -38,7 +38,7 @@ public class GlobalExceptionHandlerIntegrationTest {
                 return "OK" + id;
             }
 
-            // Método para provocar HandlerMethodValidationException
+            // Endpoint to trigger a HandlerMethodValidationException
             @GetMapping("/api/test/validation")
             public String testValidation(@RequestParam @Min(1) Long id) {
                 return "OK" + id;
@@ -51,23 +51,29 @@ public class GlobalExceptionHandlerIntegrationTest {
         mockMvc.perform(get("/api/test/generic-error")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().string("Internal server error."));
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Internal server error."))
+                .andExpect(jsonPath("$.details").value("An unexpected error occurred. Please contact support."));
     }
 
     @Test
     void testConstraintViolationException() throws Exception {
         mockMvc.perform(get("/api/test/constraint")
-                        .contentType(MediaType.APPLICATION_JSON)) // Sin enviar el parámetro id
+                        .contentType(MediaType.APPLICATION_JSON)) // No 'id' parameter provided
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Missing required parameter: id"));
+                .andExpect(jsonPath("$.errorCode").value("MISSING_PARAMETER"))
+                .andExpect(jsonPath("$.message").value("Missing required parameter: id"))
+                .andExpect(jsonPath("$.details").value("Ensure all required parameters are provided."));
     }
 
     @Test
     void testHandlerMethodValidationException() throws Exception {
         mockMvc.perform(get("/api/test/validation")
-                        .param("id", "0") // Valor inválido según @Min(1)
+                        .param("id", "0") // Invalid value as per @Min(1)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Validation error: must be greater than or equal to 1"));
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Validation error: must be greater than or equal to 1"))
+                .andExpect(jsonPath("$.details").value("Ensure that all validation constraints are met."));
     }
 }
