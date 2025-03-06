@@ -1,4 +1,4 @@
-package es.test.inditex.infrastructure.persistence.jpa;
+package es.test.inditex.adapter.persistence.jpa;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;

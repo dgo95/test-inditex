@@ -1,4 +1,4 @@
-package es.test.inditex.infrastructure.persistence.jpa;
+package es.test.inditex.adapter.persistence.jpa;
 
 import es.test.inditex.domain.model.Price;
 import es.test.inditex.domain.ports.PriceRepositoryPort;
